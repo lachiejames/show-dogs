@@ -25,6 +25,42 @@
       "required": true,
       "title": "OpenAI API Key",
       "description": "Your OpenAI API key for text-to-speech functionality"
+    },
+    {
+      "name": "voice",
+      "type": "dropdown",
+      "required": true,
+      "title": "Voice",
+      "description": "Select the voice to use for text-to-speech. Open this extension then use CMD+T to test the currently selected voice.",
+      "default": "alloy",
+      "data": [
+        { "title": "Alloy - Neutral, versatile voice", "value": "alloy" },
+        { "title": "Echo - Deep, warm male voice", "value": "echo" },
+        { "title": "Fable - British-accented storyteller", "value": "fable" },
+        { "title": "Onyx - Deep, authoritative male voice", "value": "onyx" },
+        { "title": "Nova - Feminine, energetic voice", "value": "nova" },
+        { "title": "Shimmer - Clear, youthful female voice", "value": "shimmer" }
+      ]
+    },
+    {
+      "name": "model",
+      "type": "dropdown",
+      "required": true,
+      "title": "TTS Model",
+      "description": "Select the TTS model to use",
+      "default": "tts-1",
+      "data": [
+        { "title": "TTS-1", "value": "tts-1" },
+        { "title": "TTS-1-HD", "value": "tts-1-hd" }
+      ]
+    },
+    {
+      "name": "speed",
+      "type": "textfield",
+      "required": false,
+      "title": "Speech Speed",
+      "description": "Speed of speech (0.25 to 4.0)",
+      "default": "1.0"
     }
   ],
   "dependencies": {
