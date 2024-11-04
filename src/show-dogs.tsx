@@ -1,5 +1,5 @@
-import { Detail, ActionPanel, Action, getPreferenceValues } from "@raycast/api";
-import { useState, useEffect } from "react";
+import { Detail, ActionPanel, Action, getPreferenceValues, showHUD } from "@raycast/api";
+import { useState, useEffect, useRef } from "react";
 import OpenAI from "openai";
 import fetch from "node-fetch";
 import { promises as fs } from "fs";
@@ -18,6 +18,9 @@ interface DogResponse {
 
 interface Preferences {
   openAiApiKey: string;
+  voice: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
+  model: "tts-1" | "tts-1-hd";
+  speed: string;
 }
 
 const PHRASES = [
@@ -27,6 +30,15 @@ const PHRASES = [
   "Aww, it's a lovely",
   "Meet this wonderful",
 ];
+
+const VOICE_SAMPLES = {
+  alloy: "Hi! I'm Alloy, a versatile and balanced voice.",
+  echo: "Hello there! I'm Echo, with my deep and warm tone.",
+  fable: "Greetings! I'm Fable, your British-accented storyteller.",
+  onyx: "Welcome! I'm Onyx, with my deep and authoritative voice.",
+  nova: "Hi everyone! I'm Nova, bringing energy and clarity.",
+  shimmer: "Hello! I'm Shimmer, with my clear and youthful sound."
+};
 
 function getRandomPhrase(): string {
   return PHRASES[Math.floor(Math.random() * PHRASES.length)];
@@ -54,13 +66,22 @@ export default function Command() {
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Add a ref to track if we've already fetched
+  const initialFetchDone = useRef(false);
+
   async function speak(text: string) {
     try {
       setIsPlaying(true);
+      const preferences = getPreferenceValues<Preferences>();
+      
+      // Parse speed and ensure it's within valid range (0.25 to 4.0)
+      const speed = Math.min(4.0, Math.max(0.25, parseFloat(preferences.speed) || 1.0));
+      
       const response = await openai.audio.speech.create({
-        model: "tts-1",
-        voice: "alloy",
+        model: preferences.model,
+        voice: preferences.voice,
         input: text,
+        speed: speed,
       });
 
       // Save the audio buffer to a temporary file
@@ -103,9 +124,7 @@ export default function Command() {
       // Speak the breed name with a random phrase
       const breed = extractBreedFromUrl(data.message);
       const phrase = getRandomPhrase();
-      setIsPlaying(true);
       await speak(`${phrase} ${breed}`);
-      setIsPlaying(false);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : "An unknown error occurred";
       console.error("Error:", e);
@@ -115,8 +134,24 @@ export default function Command() {
     }
   }
 
+  async function testCurrentVoice() {
+    const currentPreferences = getPreferenceValues<Preferences>();
+    const sampleText = VOICE_SAMPLES[currentPreferences.voice];
+    
+    try {
+      await showHUD("Testing voice...");
+      await speak(sampleText);
+    } catch (error) {
+      await showHUD("Failed to test voice");
+    }
+  }
+
   useEffect(() => {
-    fetchDog();
+    // Only fetch if we haven't already done the initial fetch
+    if (!initialFetchDone.current) {
+      initialFetchDone.current = true;
+      fetchDog();
+    }
   }, []);
 
   if (error) {
@@ -152,6 +187,11 @@ export default function Command() {
               setIsPlaying(false);
             }}
             shortcut={{ modifiers: ["cmd"], key: "s" }}
+          />
+          <Action
+            title="Test Current Voice"
+            onAction={testCurrentVoice}
+            shortcut={{ modifiers: ["cmd"], key: "t" }}
           />
         </ActionPanel>
       }
