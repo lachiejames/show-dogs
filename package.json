@@ -15,7 +15,8 @@
       "title": "Show Dogs",
       "subtitle": "MMM dogs",
       "description": "Shows a random dog",
-      "mode": "view"
+      "mode": "view",
+      "permissions": ["microphone"]
     }
   ],
   "preferences": [
